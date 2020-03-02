@@ -19,6 +19,12 @@ width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 fps = round(cap.get(cv2.CAP_PROP_FPS))
+print(str(videoFile)+" videoFile")
+print(str(silentSpeed)+" silentSpeed")
+print(str(width)+" Width")
+print(str(width)+" Width")
+print(str(height)+" Height")
+print(str(fps)+" FPS")
 
 extractAudio = "ffmpeg -i {} -ab 160k -ac 2 -ar 44100 -vn output.wav".format(videoFile)
 subprocess.call(extractAudio, shell=True)
@@ -80,7 +86,7 @@ while (cap.isOpened()):
 
     audioChunk = audioData[audioSampleStart:audioSampleEnd]
 
-    # if it's quite
+    # if quiet
     if getMaxVolume(audioChunk) < 500:
         skipped += 1
         # if the frame is 'switched'
@@ -88,7 +94,7 @@ while (cap.isOpened()):
         normal = 0
     else: # if it's 'loud'
 
-        # and the last frame is 'loud'
+        # if loud
         if normal:
             out.write(frame)
             nFrames += 1
@@ -129,7 +135,7 @@ cap.release()
 out.release()
 cv2.destroyAllWindows()
 
-mergeCommand = "ffmpeg -i spedup.mp4 -i spedupAudio.wav -c:v libx264 -c:a aac faster_{}".format(videoFile)
+mergeCommand = "ffmpeg -i spedup.mp4 -filter:v "setpts=0.588235294*PTS" -i spedupAudio.wav -filter:a "atempo=1.7" -c:v h264_nvenc -rc:v vbr_hq -cq:v 36 -b:v 500k -maxrate:v 1000k -profile:v high  out_{}".format(videoFile)
 error = subprocess.call(mergeCommand, shell=True)
 if error == 0:
     removeCommand = "rm output.wav spedup.mp4 spedupAudio.wav"
